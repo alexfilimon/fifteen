@@ -9,5 +9,5 @@
 import Foundation
 
 enum Constants {
-    static let boardDefaultSize = 6
+    static let boardDefaultSize = 4
 }

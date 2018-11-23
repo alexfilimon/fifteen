@@ -22,7 +22,7 @@ class BoardTests: XCTestCase {
     func testThatBoardInitBySizeCorrectly() {
         // given
         let size = 3
-        let k = Coordinate(x: 0, y: 0)
+        let k = Coord(x: 0, y: 0)
         let expectedBoardState = [
             [Card(id: 1, coordinate: k), Card(id: 2, coordinate: k), Card(id: 3, coordinate: k)],
             [Card(id: 4, coordinate: k), Card(id: 5, coordinate: k), Card(id: 6, coordinate: k)],
@@ -39,7 +39,7 @@ class BoardTests: XCTestCase {
     func testThatBoardSwapByIDCorrectly() {
         // given
         let size = 3
-        let k = Coordinate(x: 0, y: 0)
+        let k = Coord(x: 0, y: 0)
         let expectedBoardState = [
             [Card(id: 1, coordinate: k), Card(id: 5, coordinate: k), Card(id: 3, coordinate: k)],
             [Card(id: 4, coordinate: k), Card(id: 2, coordinate: k), Card(id: 6, coordinate: k)],
@@ -57,7 +57,7 @@ class BoardTests: XCTestCase {
     func testThatBoardSwapByCoordinatesCorrectly() {
         // given
         let size = 3
-        let k = Coordinate(x: 0, y: 0)
+        let k = Coord(x: 0, y: 0)
         let expectedBoardState = [
             [Card(id: 1, coordinate: k), Card(id: 5, coordinate: k), Card(id: 3, coordinate: k)],
             [Card(id: 4, coordinate: k), Card(id: 2, coordinate: k), Card(id: 6, coordinate: k)],
@@ -66,7 +66,7 @@ class BoardTests: XCTestCase {
 
         // when
         let board = Board(with: size)
-        board.swap(at: Coordinate(x: 1, y: 0), with: Coordinate(x: 1, y: 1))
+        board.swap(at: Coord(x: 1, y: 0), with: Coord(x: 1, y: 1))
 
         // then
         XCTAssert(board.state == expectedBoardState)

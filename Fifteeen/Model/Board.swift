@@ -12,50 +12,37 @@ class Board {
 
     // MARK: - Properties
 
-    var state: [[Card]]
-    var size: Int
+    private(set) var state: [[Int]]
+    private(set) var size: Int
+    private(set) var steps = 0
+    weak var delegate: BoardDelegate?
 
     // MARK: - Initialization and deinitialization
 
-    init(with state: [[Card]]) {
-        self.state = state
-        size = state.count
+    convenience init() {
+        self.init(with: Constants.boardDefaultSize)
     }
 
     init(with state: [[Int]]) {
+        self.state = state
         size = state.count
-
-        self.state = []
-        for line in state {
-            var stateLine: [Card] = []
-            for item in line {
-                stateLine.append(Card(id: item, coordinate: Coordinate(x: -1, y: -1)))
-            }
-            self.state.append(stateLine)
-        }
-        updateCardCoordinates()
     }
 
     init(with size: Int) {
         // create list of lists
         var counter = 1
-        var cards: [[Card]] = []
-        for i in 0..<size {
-            var cardRow: [Card] = []
-            for j in 0..<size {
-                cardRow.append(
-                    Card(
-                        id: counter,
-                        coordinate: Coordinate(x: j, y: i)
-                    )
-                )
+        var cards: [[Int]] = []
+        for _ in 0..<size {
+            var cardRow: [Int] = []
+            for _ in 0..<size {
+                cardRow.append(counter)
                 counter += 1
             }
             cards.append(cardRow)
         }
 
         // make last element as empty
-        cards[size - 1][size - 1].id = 0
+        cards[size - 1][size - 1] = 0
 
         // initialize
         self.state = cards
@@ -64,135 +51,142 @@ class Board {
 
     // MARK: - Public methods
 
-    public func swap(firstCardId: Int, secondCardId: Int) {
-        guard let firstCardCoord = getCardFromState(by: firstCardId),
-            let secondCardCoord = getCardFromState(by: secondCardId)
-            else { return }
-        swap(at: firstCardCoord, with: secondCardCoord)
-        updateCardCoordinates()
+    public func makeStep(at id: Int) {
+        // check if step is aviable (game not finished)
+        guard !isFinished() || steps == 0  else { return }
+
+        // check is swap needed
+        guard let swappedCardId = getSwappedId(with: id) else { return }
+
+        // make swap and notify delegate
+        swap(at: id, with: swappedCardId)
+        delegate?.swap(at: id, with: swappedCardId)
+
+        steps += 1
+
+        // check is game finished
+        if isFinished() {
+            delegate?.gameFinished(with: steps)
+        }
+
+//        // check if state solvable
+//        if !isSolvable() {
+//            // TODO make solvable
+//            delegate?.updateLayout()
+//        }
     }
 
-    public func swap(at coordinate: Coordinate, with: Coordinate) {
-        let temp = state[coordinate.y][coordinate.x]
-        state[coordinate.y][coordinate.x] = state[with.y][with.x]
-        state[with.y][with.x] = temp
-        updateCardCoordinates()
-    }
-
-    public func getCard(by id: Int) -> Card? {
+    public func isFinished() -> Bool {
+        var counter = 1
+        var copiedState = state
+        copiedState[size - 1][size - 1] = size * size
         for i in 0..<size {
             for j in 0..<size {
-                if state[i][j].id == id {
-                    return state[i][j]
+                if (copiedState[i][j] != counter) {
+                    return false
                 }
+                counter += 1
             }
         }
-        return nil
-    }
-
-    // можно ли переместить карточку card, если надо - возвращается карточка с которой надо поменяться
-    public func shouldSwap(card: Card) -> Card? {
-        let coord = card.coordinate
-        // check left
-        if coord.x > 0 {
-            if state[coord.y][coord.x - 1].id == 0 {
-                return state[coord.y][coord.x - 1]
-            }
-        }
-
-        // check right
-        if coord.x + 1 < size {
-            if state[coord.y][coord.x + 1].id == 0 {
-                return state[coord.y][coord.x + 1]
-            }
-        }
-
-        // check top
-        if coord.y > 0 {
-            if state[coord.y - 1][coord.x].id == 0 {
-                return state[coord.y - 1][coord.x]
-            }
-        }
-
-        // check bottom
-        if coord.y + 1 < size {
-            if state[coord.y + 1][coord.x].id == 0 {
-                return state[coord.y + 1][coord.x]
-            }
-        }
-
-        return nil
+        return true
     }
 
     public func isSolvable() -> Bool {
-        var puzzle: [Int] = []
-        for stateLine in state {
-            puzzle.append(contentsOf: stateLine.map { $0.id } )
+        var array: [Int] = []
+        for line in state {
+            array.append(contentsOf: line)
         }
+        guard let zeroIndex = array.firstIndex(of: 0) else { return false }
+        array.remove(at: zeroIndex)
 
-        var parity = 0
-        var row = 0 // the current row we are on
-        var blankRow = 0 // the row with the blank tile
-
-        for i in 0..<puzzle.count {
-            if i % size == 0 { // advance to next row
-                row += 1
-            }
-            if puzzle[i] == 0 { // the blank tile
-                blankRow = row // save the row on which encountered
-                continue
-            }
-            for j in (i+1)..<puzzle.count {
-                if puzzle[i] > puzzle[j] && puzzle[j] != 0 {
-                    parity += 1
+        var countPairs = 0
+        for i in 0..<array.count {
+            for j in (i+1)..<array.count {
+                if (array[i] > array[j]) {
+                    countPairs += 1
                 }
             }
         }
 
-        if (size % 2 == 0) { // even grid
-            if (blankRow % 2 == 0) { // blank on odd row; counting from bottom
-                return parity % 2 == 0
-            } else { // blank on even row; counting from bottom
-                return parity % 2 != 0
+        guard let zeroElementCoord = getCoordinate(by: 0) else { return false }
+        let solvableCoef = countPairs + zeroElementCoord.y + 1
+
+        return solvableCoef % 2 == 0
+    }
+
+    public func shuffle() {
+        // shuffle lists
+        repeat {
+            for i in 0..<size {
+                state[i].shuffle()
             }
-        } else { // odd grid
-            return parity % 2 == 0
-        }
+            state.shuffle()
+        } while (!isSolvable())
+
+        // notify delegate
+        delegate?.updateLayout()
     }
 
-    public func moveZeroTop() {
-        guard let card = getCard(by: 0) else { return }
-        swap(firstCardId: 0, secondCardId: state[card.coordinate.y - 1][card.coordinate.x].id)
+    public func begin() {
+        steps = 0
+        shuffle()
+        delegate?.updateLayout()
     }
 
-    public func moveZeroBottom() {
-        guard let card = getCard(by: 0) else { return }
-        swap(firstCardId: 0, secondCardId: state[card.coordinate.y + 1][card.coordinate.x].id)
-    }
-
-    public func getCardFromState(by coordinate: Coordinate) -> Card {
-        return state[coordinate.y][coordinate.x]
-    }
-
-    // MARK: - Private methodsё
-
-    private func getCardFromState(by id: Int) -> Coordinate? {
+    public func getCoordinate(by id: Int) -> Coord? {
         for i in 0..<size {
             for j in 0..<size {
-                if state[i][j].id == id {
-                    return Coordinate(x: j, y: i)
+                if (state[i][j] == id) {
+                    return Coord(x: j, y: i)
                 }
             }
         }
         return nil
     }
 
-    private func updateCardCoordinates() {
-        for i in 0..<size {
-            for j in 0..<size {
-                state[i][j].coordinate = Coordinate(x: j, y: i)
-            }
+    // MARK: - Private methods
+
+    private func getZeroCoordinate() -> Coord {
+        return Coord(x: 0, y: 0)
+    }
+
+    private func swap(at: Int, with: Int) {
+        guard let atCoord = getCoordinate(by: at),
+            let withCoord = getCoordinate(by: with) else { return }
+        swap(at: atCoord, with: withCoord)
+    }
+
+    private func swap(at: Coord, with: Coord) {
+        let temp = state[at.y][at.x]
+        state[at.y][at.x] = state[with.y][with.x]
+        state[with.y][with.x] = temp
+    }
+
+    /// if swap is needed return swapped id, else return nil
+    private func getSwappedId(with id: Int) -> Int? {
+        guard let coord = getCoordinate(by: id) else { return nil }
+
+        // check top
+        if (coord.y > 0 && state[coord.y - 1][coord.x] == 0) {
+            return state[coord.y - 1][coord.x]
         }
+
+        // check left
+        if (coord.x > 0 && state[coord.y][coord.x - 1] == 0) {
+            return state[coord.y][coord.x - 1]
+        }
+
+        // check bottom
+        if (coord.y < (size - 1) && state[coord.y + 1][coord.x] == 0) {
+            return state[coord.y + 1][coord.x]
+        }
+
+        // check right
+        if (coord.x < (size - 1) && state[coord.y][coord.x + 1] == 0) {
+            return state[coord.y][coord.x + 1]
+        }
+
+        return nil
     }
 
 }

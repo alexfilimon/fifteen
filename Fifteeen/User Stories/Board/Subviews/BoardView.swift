@@ -14,13 +14,15 @@ class BoardView: UIView {
 
     private enum ViewConstants {
         static let boardMargin: CGFloat = 0
-        static let animationDuration: Double = 0.1
+        static let buttonMargin: CGFloat = 5
+        static let animationDuration: Double = 0.3
     }
 
     // MARK: - Properties
 
     private var buttons: [UIButton] = []
     private var model: Board?
+    private weak var parent: UIViewController?
     private var rect: CGRect = .zero
 
     // MARK: - Life cycle
@@ -29,13 +31,17 @@ class BoardView: UIView {
         super.layoutSubviews()
         rect = getRect()
 
-        layoutButtons()
+        setupLayout()
     }
 
     // MARK: - Public methods
 
-    public func configure(with model: Board) {
+    public func configure(with model: Board, parent: UIViewController) {
         self.model = model
+        self.parent = parent
+
+        model.delegate = self
+        model.begin()
 
         addButtons()
     }
@@ -63,28 +69,7 @@ class BoardView: UIView {
     @objc
     private func buttonClicked(_ sender: UIButton) {
         print("button with id: \(sender.tag) clicked")
-        guard let model = model, let currentCard = model.getCard(by: sender.tag) else { return }
-
-        if let swappedCard = model.shouldSwap(card: currentCard) {
-            // надо менять
-            model.swap(firstCardId: currentCard.id, secondCardId: swappedCard.id)
-            swapButtons(firstButtonId: currentCard.id, secondButtonId: swappedCard.id)
-
-//            if !model.isSolvable() {
-//                // нет решения
-//                guard let zeroCard = model.getCard(by: 0), let zeroButton = getButton(by: 0) else { return }
-//                if zeroCard.coordinate.y > 0 {
-//                    // сдвинуть вверх
-//                    model.moveZeroTop()
-//                    swapButtons(firstButtonId: currentCard.id, secondButtonId: model.getCardFromState(by: Coordinate(x: zeroCard.coordinate.x, y: zeroCard.coordinate.y - 1)).id)
-//                } else {
-//                    // сдвинуть вниз
-//                    model.moveZeroBottom()
-//                    swapButtons(firstButtonId: currentCard.id, secondButtonId: model.getCardFromState(by: Coordinate(x: zeroCard.coordinate.x, y: zeroCard.coordinate.y + 1)).id)
-//                }
-//                print("error no solution")
-//            }
-        }
+        model?.makeStep(at: sender.tag)
     }
 
     private func addButtons() {
@@ -92,17 +77,17 @@ class BoardView: UIView {
         for stateLine in model.state {
             for card in stateLine {
                 let button = UIButton()
-                button.tag = card.id
+                button.tag = card
 
-                if card.id == 0 {
+                if card == 0 {
                     button.backgroundColor = UIColor.clear
                 } else {
-                    button.layer.borderColor = UIColor.black.cgColor
-                    button.layer.borderWidth = 1
+                    button.layer.cornerRadius = 5
+                    button.clipsToBounds = true
 
-                    button.backgroundColor = UIColor.white
-                    button.setTitle(String(card.id), for: .normal)
-                    button.setTitleColor(.black, for: .normal)
+                    button.backgroundColor = UIColor(red: 252, green: 189, blue: 156)
+                    button.setTitle(String(card), for: .normal)
+                    button.setTitleColor(UIColor(red: 231, green: 79, blue: 23), for: .normal)
                     button.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
                 }
 
@@ -113,20 +98,6 @@ class BoardView: UIView {
 
                 buttons.append(button)
             }
-        }
-    }
-
-    private func layoutButtons() {
-        guard let model = model else { return }
-        let buttonSize = rect.width / CGFloat(Constants.boardDefaultSize)
-        for button in buttons {
-            guard let card = model.getCard(by: button.tag) else { continue }
-            button.frame = CGRect(
-                x: rect.origin.x + buttonSize * CGFloat(card.coordinate.x),
-                y: rect.origin.y + buttonSize * CGFloat(card.coordinate.y),
-                width: buttonSize,
-                height: buttonSize
-            )
         }
     }
 
@@ -152,6 +123,82 @@ class BoardView: UIView {
             }
         }
         return nil
+    }
+
+    /// without animating
+    private func setupButtonsLayout() {
+        guard let model = model else { return }
+        let buttonSize = rect.width / CGFloat(Constants.boardDefaultSize) - ViewConstants.buttonMargin * 2
+        for button in buttons {
+            guard let coord = model.getCoordinate(by: button.tag) else { continue }
+            button.frame = CGRect(
+                x: rect.origin.x + (buttonSize + ViewConstants.buttonMargin * 2) * CGFloat(coord.x) + ViewConstants.buttonMargin ,
+                y: rect.origin.y + (buttonSize + ViewConstants.buttonMargin * 2) * CGFloat(coord.y) + ViewConstants.buttonMargin,
+                width: buttonSize,
+                height: buttonSize
+            )
+        }
+    }
+
+    private func updateButtonsLayout() {
+        guard let model = model else { return }
+        let buttonSize = rect.width / CGFloat(Constants.boardDefaultSize) - ViewConstants.buttonMargin * 2
+        for button in buttons {
+            guard let coord = model.getCoordinate(by: button.tag) else { continue }
+            UIView.animate(withDuration: ViewConstants.animationDuration) { [weak self] in
+                guard let `self` = self else { return }
+                button.frame = CGRect(
+                    x: self.rect.origin.x + (buttonSize + ViewConstants.buttonMargin * 2) * CGFloat(coord.x) + ViewConstants.buttonMargin,
+                    y: self.rect.origin.y + (buttonSize + ViewConstants.buttonMargin * 2) * CGFloat(coord.y) + ViewConstants.buttonMargin,
+                    width: buttonSize,
+                    height: buttonSize
+                )
+            }
+        }
+    }
+
+}
+
+// MARK: - BoardDelegate
+
+extension BoardView: BoardDelegate {
+
+    func setupLayout() {
+        setupButtonsLayout()
+    }
+
+    func updateLayout() {
+        updateButtonsLayout()
+    }
+
+    func gameFinished(with steps: Int) {
+        print("!!! game finished")
+        let alertController = UIAlertController(title: "Game finished", message: "You made \(steps) steps", preferredStyle: .alert)
+        alertController.addAction(
+            UIAlertAction(
+                title: "Start new",
+                style: .default,
+                handler: { [weak self] (_) in
+                    self?.model?.begin()
+                }
+            )
+        )
+        alertController.addAction(
+            UIAlertAction(
+                title: "Cancel",
+                style: .cancel,
+                handler: nil
+            )
+        )
+        parent?.present(alertController, animated: true, completion: nil)
+    }
+
+    func swap(at: Int, with: Int) {
+        swapButtons(firstButtonId: at, secondButtonId: with)
+    }
+
+    func statisticsChanged() {
+        
     }
 
 }

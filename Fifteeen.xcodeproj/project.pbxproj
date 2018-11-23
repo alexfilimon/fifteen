@@ -15,10 +15,11 @@
 		C18EC986219D3A7F00848391 /* FifteeenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC985219D3A7F00848391 /* FifteeenTests.swift */; };
 		C18EC99B219D3BC000848391 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC99A219D3BC000848391 /* BoardView.swift */; };
 		C18EC99D219D40B800848391 /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC99C219D40B800848391 /* Board.swift */; };
-		C18EC99F219D40E900848391 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC99E219D40E900848391 /* Card.swift */; };
 		C18EC9A1219D422300848391 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC9A0219D422300848391 /* Constants.swift */; };
-		C18EC9A3219D433B00848391 /* Coordinate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC9A2219D433B00848391 /* Coordinate.swift */; };
+		C18EC9A3219D433B00848391 /* Coord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC9A2219D433B00848391 /* Coord.swift */; };
 		C18EC9A5219D469000848391 /* BoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EC9A4219D469000848391 /* BoardTests.swift */; };
+		C1E09F5F21A7C5EC00ED7BA2 /* BoardDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E09F5E21A7C5EC00ED7BA2 /* BoardDelegate.swift */; };
+		C1E09F6221A7DE5700ED7BA2 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E09F6121A7DE5700ED7BA2 /* UIColor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,10 +45,11 @@
 		C18EC987219D3A7F00848391 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C18EC99A219D3BC000848391 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
 		C18EC99C219D40B800848391 /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
-		C18EC99E219D40E900848391 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		C18EC9A0219D422300848391 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		C18EC9A2219D433B00848391 /* Coordinate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinate.swift; sourceTree = "<group>"; };
+		C18EC9A2219D433B00848391 /* Coord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coord.swift; sourceTree = "<group>"; };
 		C18EC9A4219D469000848391 /* BoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardTests.swift; sourceTree = "<group>"; };
+		C1E09F5E21A7C5EC00ED7BA2 /* BoardDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardDelegate.swift; sourceTree = "<group>"; };
+		C1E09F6121A7DE5700ED7BA2 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +123,7 @@
 		C18EC991219D3AC000848391 /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				C1E09F6021A7DE2700ED7BA2 /* Extensions */,
 			);
 			path = Library;
 			sourceTree = "<group>";
@@ -137,8 +140,8 @@
 			isa = PBXGroup;
 			children = (
 				C18EC99C219D40B800848391 /* Board.swift */,
-				C18EC99E219D40E900848391 /* Card.swift */,
-				C18EC9A2219D433B00848391 /* Coordinate.swift */,
+				C18EC9A2219D433B00848391 /* Coord.swift */,
+				C1E09F5E21A7C5EC00ED7BA2 /* BoardDelegate.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -192,6 +195,14 @@
 				C18EC99A219D3BC000848391 /* BoardView.swift */,
 			);
 			path = Subviews;
+			sourceTree = "<group>";
+		};
+		C1E09F6021A7DE2700ED7BA2 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				C1E09F6121A7DE5700ED7BA2 /* UIColor.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -295,11 +306,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C18EC9A3219D433B00848391 /* Coordinate.swift in Sources */,
+				C18EC9A3219D433B00848391 /* Coord.swift in Sources */,
 				C18EC99B219D3BC000848391 /* BoardView.swift in Sources */,
+				C1E09F5F21A7C5EC00ED7BA2 /* BoardDelegate.swift in Sources */,
 				C18EC973219D3A7B00848391 /* ViewController.swift in Sources */,
-				C18EC99F219D40E900848391 /* Card.swift in Sources */,
 				C18EC99D219D40B800848391 /* Board.swift in Sources */,
+				C1E09F6221A7DE5700ED7BA2 /* UIColor.swift in Sources */,
 				C18EC971219D3A7B00848391 /* AppDelegate.swift in Sources */,
 				C18EC9A1219D422300848391 /* Constants.swift in Sources */,
 			);

@@ -14,15 +14,33 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var boardView: BoardView!
 
+    // MARK: - IBOutlets
+
+    @IBOutlet private weak var newGameButton: UIButton!
+    @IBOutlet private weak var shuffleButton: UIButton!
+
+    // MARK: - IBActions
+
+    @IBAction private func newGameClicked(_ sender: UIButton) {
+        model?.begin()
+    }
+
+    @IBAction private func shuffleClicked(_ sender: Any) {
+        model?.shuffle()
+    }
+
+    // MARK: - Properties
+
+    private var model: Board?
+
     // MARK: - Life cycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        boardView.configure(with: Board(with: Constants.boardDefaultSize))
-        boardView.backgroundColor = UIColor.orange
-
-        view.backgroundColor = UIColor.gray
+        let model = Board()
+        self.model = model
+        boardView.configure(with: model, parent: self)
     }
 
 }
